@@ -156,14 +156,8 @@ def create_lhe_generator(
             )    
             
     # Find fragment
-    fragment_url = get_genfragment_url(dataset, mcm_dir)
-    if fragment_url:
-        fragment_url = fragment_url[0]
-        fragment = requests.get(fragment_url, verify=False).text
-        if not fragment:
-            fragment = get_from_deep_json(get_mcm_dict(dataset, mcm_dir), "fragment")
-    else:
-        fragment = get_from_deep_json(get_mcm_dict(dataset, mcm_dir), "fragment")
+    fragment = get_from_deep_json(get_mcm_dict(dataset, mcm_dir), "fragment")
+
     if not fragment:
         log(
             recid,
@@ -173,16 +167,18 @@ def create_lhe_generator(
         return
 
     # Find gridpack path
-    path = re.search(r"cms.vstring\(['\"\[]\s*(/cvmfs.*?)['\"]", fragment)
+    # path = re.search(r"cms.vstring\(['\"\[]\s*(/cvmfs.*?)['\"]", fragment)
+    path = re.search(r"(/cvmfs/cms.cern.ch/phys_generator/gridpacks[^']*)", fragment)
     if not path:
         log(
             recid,
             "ERROR",
-            f"No 'cms.vstring(/cvmfs' found in fragment; skipping.",
+            f"No '/cvmfs/cms.cern.ch/phys_generator/gridpacks' found in fragment; skipping.",
         )
         return
 
-    path = path.group(1)
+    path = path.groups()[0]
+
     log(recid, "INFO", f"Found path {path}")
     outfilepath = "{gen_store}/gridpacks/{recid}".format(
         gen_store=gen_store, recid=recid
@@ -255,9 +251,17 @@ def create_lhe_generator(
         files.extend(
             [
                 "./jhugen.input",
+                "./JHUGen.input",
                 "./jhugen_decay.input",
+                "./JHUGen_decay.input",
+                "./*_JHUGen/JHUGen.input",
+                "./*_JHUGen/JHUGen_decay.input",
                 "jhugen.input",
+                "JHUGen.input",
                 "jhugen_decay.input",
+                "JHUGen_decay.input",
+                "*_JHUGen/JHUGen.input",
+                "*_JHUGen/JHUGen_decay.input",
             ]
         )
     elif gridpack_case == "phantom":
@@ -272,6 +276,8 @@ def create_lhe_generator(
             [
                 "./readInput.DAT",
                 "readInput.DAT",
+                "./JHUGen.input",
+                "JHUGen.input",
             ]
         )
 
