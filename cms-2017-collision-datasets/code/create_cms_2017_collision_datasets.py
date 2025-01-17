@@ -605,6 +605,10 @@ def print_records(records):
 def main():
     "Do the job."
 
+    # TPM: this is only done if we have a doi-col.txt file that isn't empty
+    # and populated with DOIs for the datasets. Which we do.
+    populate_doiinfo()
+    
     records = []
     recid = RECID_START
     with open("./inputs/cms-2017-collision-datasets.txt", "r") as fdesc:
